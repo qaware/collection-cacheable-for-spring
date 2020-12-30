@@ -4,8 +4,8 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 @CacheConfig(cacheNames = CollectionCacheableTestRepository.CACHE_NAME)
@@ -30,22 +30,27 @@ public class CollectionCacheableTestRepository {
 
     @CollectionCacheable(CACHE_NAME)
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIds(Collection<CollectionCacheableTestId> ids) {
-        return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
+        return findByIdsInternal(ids);
     }
 
     @CollectionCacheable(condition = "#ids.size() < 3")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithCondition(Collection<CollectionCacheableTestId> ids) {
-        return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
+        return findByIdsInternal(ids);
     }
 
     @CollectionCacheable(unless = "#result.size() > 1")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithUnless(Collection<CollectionCacheableTestId> ids) {
-        return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
+        return findByIdsInternal(ids);
     }
 
     @CollectionCacheable(cacheNames = CACHE_NAME, key = "#p0.id")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithKey(Collection<CollectionCacheableTestId> ids) {
-        return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
+        return findByIdsInternal(ids);
+    }
+
+    @CollectionCacheable(putNull = true)
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithPutNull(Collection<CollectionCacheableTestId> ids) {
+        return findByIdsInternal(ids);
     }
 
     @CollectionCacheable(CACHE_NAME)
@@ -61,5 +66,19 @@ public class CollectionCacheableTestRepository {
     @CollectionCacheable(cacheNames = CACHE_NAME, key = "#result.id")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findAllWithKey() {
         return myDbRepository.findAll();
+    }
+
+    private Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsInternal(Collection<CollectionCacheableTestId> ids) {
+        // just a "simulation" of an efficient findByIds call to the underlying persistence layer
+        // in real use cases, this should be some efficient query!
+        Map<CollectionCacheableTestId, CollectionCacheableTestValue> result = new HashMap<>();
+        for (CollectionCacheableTestId id : ids) {
+            CollectionCacheableTestValue value = myDbRepository.findById(id);
+            // do not explicitly put null values into map
+            if (value != null) {
+                result.put(id, value);
+            }
+        }
+        return result;
     }
 }

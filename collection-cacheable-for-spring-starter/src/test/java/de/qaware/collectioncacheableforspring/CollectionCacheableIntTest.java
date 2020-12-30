@@ -187,6 +187,19 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
+    public void findByIdsWithPutNull() {
+        when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
+
+        assertThat(sut.findByIdsWithPutNull(setOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1));
+        assertThat(sut.findByIdsWithPutNull(setOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1));
+
+        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository, times(1)).findById(SOME_KEY_2);
+    }
+
+    @Test
     public void findAll() throws Exception {
         when(repository.findAll()).thenReturn(mapOf(SOME_KEY_1, SOME_VALUE_1));
 
@@ -207,6 +220,7 @@ public class CollectionCacheableIntTest {
 
         verify(repository, never()).findById(any());
     }
+
 
     @Test
     public void findAllWithUnless_fulfilled() throws Exception {

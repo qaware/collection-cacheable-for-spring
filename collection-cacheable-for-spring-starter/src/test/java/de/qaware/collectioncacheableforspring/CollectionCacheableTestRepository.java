@@ -1,5 +1,6 @@
 package de.qaware.collectioncacheableforspring;
 
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.Collection;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
+@CacheConfig(cacheNames = CollectionCacheableTestRepository.CACHE_NAME)
 public class CollectionCacheableTestRepository {
     public static final String CACHE_NAME = "myCache";
 
@@ -16,7 +18,7 @@ public class CollectionCacheableTestRepository {
         this.myDbRepository = myDbRepository;
     }
 
-    @Cacheable(cacheNames = CACHE_NAME)
+    @Cacheable
     public CollectionCacheableTestValue findById(CollectionCacheableTestId id) {
         return myDbRepository.findById(id);
     }
@@ -31,12 +33,12 @@ public class CollectionCacheableTestRepository {
         return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
     }
 
-    @CollectionCacheable(cacheNames = CACHE_NAME, condition = "#ids.size() < 3")
+    @CollectionCacheable(condition = "#ids.size() < 3")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithCondition(Collection<CollectionCacheableTestId> ids) {
         return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
     }
 
-    @CollectionCacheable(cacheNames = CACHE_NAME, unless = "#result.size() > 1")
+    @CollectionCacheable(unless = "#result.size() > 1")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithUnless(Collection<CollectionCacheableTestId> ids) {
         return ids.stream().collect(Collectors.toMap(x -> x, myDbRepository::findById));
     }

@@ -18,6 +18,8 @@ package de.qaware.collectioncacheableforspring;
 
 import org.springframework.cache.interceptor.CachePutOperation;
 
+import java.util.Objects;
+
 public class CollectionCacheableOperation extends CachePutOperation {
 
     private final boolean isFindAll;
@@ -36,6 +38,20 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
     public boolean isPutNull() {
         return putNull;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        CollectionCacheableOperation that = (CollectionCacheableOperation) o;
+        return isFindAll == that.isFindAll && putNull == that.putNull;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), isFindAll, putNull);
     }
 
     public static class Builder extends CachePutOperation.Builder {

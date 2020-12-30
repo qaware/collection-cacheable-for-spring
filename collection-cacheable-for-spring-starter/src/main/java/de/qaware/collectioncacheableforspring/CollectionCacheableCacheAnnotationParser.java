@@ -18,40 +18,27 @@ package de.qaware.collectioncacheableforspring;
 
 import org.springframework.cache.annotation.CacheAnnotationParser;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.interceptor.CacheOperation;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Strategy implementation for parsing Spring's {@link Caching}, {@link Cacheable},
- * {@link CacheEvict}, and {@link CachePut} annotations.
- *
- * @author Costin Leau
- * @author Juergen Hoeller
- * @author Chris Beams
- * @author Phillip Webb
- * @author Stephane Nicoll
- * @author Sam Brannen
- * @since 3.1
+ * Strategy implementation for parsing Spring's
+ * {@link CollectionCacheable}. Inspired by {@link
+ * org.springframework.cache.annotation.SpringCacheAnnotationParser
+ * Spring's internal implementation}.
  */
-@SuppressWarnings("serial")
-public class CollectionCacheableCacheAnnotationParser implements CacheAnnotationParser, Serializable {
+public class CollectionCacheableCacheAnnotationParser implements CacheAnnotationParser {
 
     private static final String MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION =
             "Invalid CollectionCacheable annotation configuration on '%s'.";
@@ -83,20 +70,17 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
         return ops;
     }
 
-    private Collection<CacheOperation> parseCacheAnnotations(
-            DefaultCacheConfig cachingConfig, Method method, boolean localOnly) {
-
-        Collection<? extends Annotation> anns = (localOnly ?
+    @Nullable
+    private Collection<CacheOperation> parseCacheAnnotations(DefaultCacheConfig cachingConfig, Method method, boolean localOnly) {
+        Collection<CollectionCacheable> annotations = (localOnly ?
                 AnnotatedElementUtils.getAllMergedAnnotations(method, CollectionCacheable.class) :
                 AnnotatedElementUtils.findAllMergedAnnotations(method, CollectionCacheable.class));
-        if (anns.isEmpty()) {
-            return Collections.emptyList();
+        if (annotations.isEmpty()) {
+            return null;
         }
-
-        final Collection<CacheOperation> ops = new ArrayList<>(1);
-        anns.stream().filter(ann -> ann instanceof CollectionCacheable).forEach(
-                ann -> ops.add(parseCollectionCacheableAnnotation(method, cachingConfig, (CollectionCacheable) ann)));
-        return ops;
+        return annotations.stream()
+                .map(annotation -> parseCollectionCacheableAnnotation(method, cachingConfig, annotation))
+                .collect(Collectors.toList());
     }
 
     private CollectionCacheableOperation parseCollectionCacheableAnnotation(
@@ -212,16 +196,6 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
         }
     }
 
-    @Override
-    public boolean equals(Object other) {
-        return (this == other || other instanceof CollectionCacheableCacheAnnotationParser);
-    }
-
-    @Override
-    public int hashCode() {
-        return CollectionCacheableCacheAnnotationParser.class.hashCode();
-    }
-
     /**
      * Provides default settings for a given set of cache operations.
      */
@@ -261,12 +235,13 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
                     StringUtils.hasText(this.keyGenerator)) {
                 builder.setKeyGenerator(this.keyGenerator);
             }
-            if (StringUtils.hasText(builder.getCacheManager()) || StringUtils.hasText(builder.getCacheResolver())) {
-                // One of these is set so we should not inherit anything
-            } else if (StringUtils.hasText(this.cacheResolver)) {
-                builder.setCacheResolver(this.cacheResolver);
-            } else if (StringUtils.hasText(this.cacheManager)) {
-                builder.setCacheManager(this.cacheManager);
+            // One of these is set so we should not inherit anything
+            if (!StringUtils.hasText(builder.getCacheManager()) && !StringUtils.hasText(builder.getCacheResolver())) {
+                if (StringUtils.hasText(this.cacheResolver)) {
+                    builder.setCacheResolver(this.cacheResolver);
+                } else if (StringUtils.hasText(this.cacheManager)) {
+                    builder.setCacheManager(this.cacheManager);
+                }
             }
         }
 

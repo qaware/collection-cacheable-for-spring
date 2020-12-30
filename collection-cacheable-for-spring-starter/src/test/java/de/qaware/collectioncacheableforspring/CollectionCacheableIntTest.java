@@ -8,9 +8,9 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
+import static de.qaware.collectioncacheableforspring.CollectionCacheableTestRepository.CACHE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,15 +47,12 @@ public class CollectionCacheableIntTest {
     @MockBean
     private CollectionCacheableTestDbRepository repository;
 
-    @Autowired
+    @MockBean
     private CacheManager cacheManager;
 
     @Before
     public void setUp() throws Exception {
-        cacheManager.getCacheNames().stream()
-                .map(cacheManager::getCache)
-                .filter(Objects::nonNull)
-                .forEach(Cache::clear);
+        when(cacheManager.getCache(CACHE_NAME)).thenReturn(new ConcurrentMapCache(CACHE_NAME));
     }
 
     @Test

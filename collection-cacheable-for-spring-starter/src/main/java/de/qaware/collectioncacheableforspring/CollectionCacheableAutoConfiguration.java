@@ -1,45 +1,50 @@
 package de.qaware.collectioncacheableforspring;
 
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.cache.annotation.AbstractCachingConfiguration;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.AnnotationCacheOperationSource;
 import org.springframework.cache.annotation.SpringCacheAnnotationParser;
-import org.springframework.cache.interceptor.BeanFactoryCacheOperationSourceAdvisor;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.cache.interceptor.CacheOperationSource;
+import org.springframework.cache.interceptor.CacheResolver;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
-public class CollectionCacheableAutoConfiguration extends AbstractCachingConfiguration {
+public class CollectionCacheableAutoConfiguration {
     private static final CacheOperationSource CACHE_OPERATION_SOURCE = new AnnotationCacheOperationSource(
             new SpringCacheAnnotationParser(),
             new CollectionCacheableCacheAnnotationParser()
     );
 
     @Bean
-    public BeanFactoryPostProcessor beanFactoryPostProcessor(ObjectFactory<CacheErrorHandler> errorHandlerObjectFactory) {
+    public static BeanFactoryPostProcessor beanFactoryPostProcessor() {
         return beanFactory -> beanFactory.addBeanPostProcessor(new BeanPostProcessor() {
             @Override
             public Object postProcessBeforeInitialization(Object bean, String beanName) {
-                if (bean instanceof BeanFactoryCacheOperationSourceAdvisor) {
-                    BeanFactoryCacheOperationSourceAdvisor advisor = (BeanFactoryCacheOperationSourceAdvisor) bean;
-                    advisor.setCacheOperationSource(CACHE_OPERATION_SOURCE);
-                    advisor.setAdvice(collectionCacheInterceptor(errorHandlerObjectFactory));
+                if (bean instanceof CacheOperationSource) {
+                    return CACHE_OPERATION_SOURCE;
+                } else if (bean instanceof CacheInterceptor) {
+                    return collectionCacheInterceptor(beanFactory);
                 }
                 return bean;
             }
         });
     }
 
-    @Bean
-    public CacheInterceptor collectionCacheInterceptor(ObjectFactory<CacheErrorHandler> errorHandlerObjectFactory) {
+    private static CacheInterceptor collectionCacheInterceptor(ConfigurableListableBeanFactory beanFactory) {
         CacheInterceptor interceptor = new CollectionCacheableCacheInterceptor();
-        interceptor.configure(errorHandlerObjectFactory::getObject, this.keyGenerator, this.cacheResolver, this.cacheManager);
+        interceptor.configure(
+                () -> beanFactory.getBeanProvider(CacheErrorHandler.class).getIfAvailable(),
+                () -> beanFactory.getBeanProvider(KeyGenerator.class).getIfAvailable(),
+                () -> beanFactory.getBeanProvider(CacheResolver.class).getIfAvailable(),
+                () -> beanFactory.getBeanProvider(CacheManager.class).getIfAvailable()
+        );
         interceptor.setCacheOperationSource(CACHE_OPERATION_SOURCE);
         return interceptor;
     }

@@ -14,8 +14,7 @@
     <name>Collection Cacheable for Spring</name>
     <packaging>pom</packaging>
     <description>
-        This library provides the @CollectionCacheable annotation
-        extending the Spring cache abstraction
+        Spring cache extension for putting a whole collection of entities as single cache items
     </description>
 
     <properties>

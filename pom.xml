@@ -16,6 +16,48 @@
     <description>
         Spring cache extension for putting a whole collection of entities as single cache items
     </description>
+    <url>https://github.com/qaware/collection-cacheable-for-spring</url>
+
+    <inceptionYear>2020</inceptionYear>
+
+    <organization>
+        <name>QAware GmbH</name>
+        <url>https://www.qaware.de</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License v2</name>
+            <url>https://opensource.org/licenses/Apache-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/qaware/openapi-generator-for-spring/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <id>neiser</id>
+            <url>https://github.com/neiser</url>
+            <name>Andreas Grub</name>
+            <email>andreas.grub@qaware.de</email>
+            <organization>QAware GmbH</organization>
+            <organizationUrl>https://www.qaware.de</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/qaware/collection-cacheable-for-spring.git</connection>
+        <developerConnection>scm:git:https://github.com/qaware/collection-cacheable-for-spring.git</developerConnection>
+        <url>https://github.com/qaware/collection-cacheable-for-spring</url>
+        <tag>master</tag>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,6 +65,13 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <sonar.projectKey>qaware_collection-cacheable-for-spring</sonar.projectKey>
+        <sonar.organization>qaware-github</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <modules>
@@ -40,5 +89,127 @@
         </dependencies>
     </dependencyManagement>
 
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.0.0</version>
+                    <configuration>
+                        <licenseName>apache_v2</licenseName>
+                        <organizationName>QAware GmbH</organizationName>
+                        <inceptionYear>2020</inceptionYear>
+                        <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+                        <emptyLineAfterHeader>true</emptyLineAfterHeader>
+                        <roots>
+                            <root>src/main/java</root>
+                        </roots>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>update-license-header</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Disable pushing in the release plugin -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <pushChanges>false</pushChanges>
+                    <releaseProfiles>release</releaseProfiles>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- Create sources JAR -->
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Create JavaDoc JAR -->
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <!-- See https://maven.apache.org/plugins/maven-javadoc-plugin/examples/tag-configuration.html -->
+                            <tags>
+                                <!-- Register @implNote -->
+                                <tag>
+                                    <name>implNote</name>
+                                    <!-- All -->
+                                    <placement>a</placement>
+                                    <head>Implementation note:</head>
+                                </tag>
+                            </tags>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
+            <distributionManagement>
+                <repository>
+                    <id>bintray-qaware-oss</id>
+                    <url>https://api.bintray.com/maven/qaware-oss/maven/collection-cacheable-for-spring;publish=1</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
 </project>

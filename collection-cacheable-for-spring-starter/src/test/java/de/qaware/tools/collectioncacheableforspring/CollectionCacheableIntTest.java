@@ -1,4 +1,4 @@
-package de.qaware.collectioncacheableforspring;
+package de.qaware.tools.collectioncacheableforspring;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static de.qaware.collectioncacheableforspring.CollectionCacheableTestRepository.CACHE_NAME;
+import static de.qaware.tools.collectioncacheableforspring.CollectionCacheableTestRepository.CACHE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;

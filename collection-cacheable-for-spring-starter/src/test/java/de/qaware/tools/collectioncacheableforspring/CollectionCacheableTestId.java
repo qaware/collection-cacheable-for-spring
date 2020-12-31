@@ -1,4 +1,4 @@
-package de.qaware.collectioncacheableforspring;
+package de.qaware.tools.collectioncacheableforspring;
 
 import java.util.Objects;
 import java.util.StringJoiner;

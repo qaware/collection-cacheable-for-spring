@@ -18,7 +18,7 @@
  * #L%
  */
 
-package de.qaware.collectioncacheableforspring;
+package de.qaware.tools.collectioncacheableforspring;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;

@@ -18,7 +18,7 @@
  * #L%
  */
 
-package de.qaware.collectioncacheableforspring;
+package de.qaware.tools.collectioncacheableforspring;
 
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.cache.Cache;

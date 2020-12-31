@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-de.qaware.collectioncacheableforspring.CollectionCacheableAutoConfiguration
+de.qaware.tools.collectioncacheableforspring.CollectionCacheableAutoConfiguration

@@ -1,4 +1,4 @@
-package de.qaware.collectioncacheableforspring;
+package de.qaware.tools.collectioncacheableforspring;
 
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;

@@ -1,5 +1,11 @@
 # Collection Cacheable for Spring
 
+[![Build Status](https://github.com/qaware/collection-cacheable-for-spring/workflows/build/badge.svg?branch=master)](https://github.com/qaware/collection-cacheable-for-spring/actions?query=workflow%3A%22build%22)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=qaware_collection-cacheable-for-spring&metric=alert_status)](https://sonarcloud.io/dashboard?id=qaware_collection-cacheable-for-spring)
+[![Code Coverage](https://sonarcloud.io/api/project_badges/measure?project=qaware_collection-cacheable-for-spring&metric=coverage)](https://sonarcloud.io/dashboard?id=qaware_collection-cacheable-for-spring)
+[![Bintray Download](https://api.bintray.com/packages/qaware-oss/maven/collection-cacheable-for-spring/images/download.svg) ](https://bintray.com/qaware-oss/maven/collection-cacheable-for-spring/_latestVersion)
+[![Maven Central](https://img.shields.io/maven-central/v/de.qaware.tools.collection-cacheable-for-spring/collection-cacheable-for-spring-starter)](https://mvnrepository.com/artifact/de.qaware.tools.collection-cacheable-for-spring/collection-cacheable-for-spring-starter)
+
 This library provides the `@CollectionCacheable` annotation extending Spring's caching mechanism, in
 particular `@Cacheable`.
 

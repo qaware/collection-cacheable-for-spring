@@ -36,6 +36,8 @@ import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
+@SuppressWarnings("java:S1118")
+// suppress "Utility classes should not have public constructors" as Spring needs a public ctor
 public class CollectionCacheableAutoConfiguration {
     private static final CacheOperationSource CACHE_OPERATION_SOURCE = new AnnotationCacheOperationSource(
             new SpringCacheAnnotationParser(),

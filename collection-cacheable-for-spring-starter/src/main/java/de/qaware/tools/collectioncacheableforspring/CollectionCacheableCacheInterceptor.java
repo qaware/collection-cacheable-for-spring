@@ -157,8 +157,8 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             return null;
         }
         List<CollectionCacheableOperation> collectionCacheableOperations = operations.stream()
-                .filter(o -> o instanceof CollectionCacheableOperation)
-                .map(o -> (CollectionCacheableOperation) o)
+                .filter(CollectionCacheableOperation.class::isInstance)
+                .map(CollectionCacheableOperation.class::cast)
                 .collect(Collectors.toList());
         if (collectionCacheableOperations.isEmpty()) {
             return null;

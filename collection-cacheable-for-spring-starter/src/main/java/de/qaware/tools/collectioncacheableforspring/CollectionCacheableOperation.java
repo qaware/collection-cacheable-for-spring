@@ -22,8 +22,6 @@ package de.qaware.tools.collectioncacheableforspring;
 
 import org.springframework.cache.interceptor.CachePutOperation;
 
-import java.util.Objects;
-
 public class CollectionCacheableOperation extends CachePutOperation {
 
     private final boolean isFindAll;
@@ -46,16 +44,12 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        CollectionCacheableOperation that = (CollectionCacheableOperation) o;
-        return isFindAll == that.isFindAll && putNull == that.putNull;
+        return (o instanceof CollectionCacheableOperation && toString().equals(o.toString()));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), isFindAll, putNull);
+        return toString().hashCode();
     }
 
     public static class Builder extends CachePutOperation.Builder {
@@ -74,14 +68,11 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
         @Override
         protected StringBuilder getOperationDescription() {
-            StringBuilder sb = super.getOperationDescription();
-            sb.append(" | isFindAll ='");
-            sb.append(this.isFindAll);
-            sb.append("'");
-            sb.append(" | putNull ='");
-            sb.append(this.putNull);
-            sb.append("'");
-            return sb;
+            return super.getOperationDescription()
+                    .append(" | isFindAll=")
+                    .append(this.isFindAll)
+                    .append(" | putNull=")
+                    .append(this.putNull);
         }
 
         @Override

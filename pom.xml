@@ -179,18 +179,6 @@
                     <!-- Create JavaDoc JAR -->
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <!-- See https://maven.apache.org/plugins/maven-javadoc-plugin/examples/tag-configuration.html -->
-                            <tags>
-                                <!-- Register @implNote -->
-                                <tag>
-                                    <name>implNote</name>
-                                    <!-- All -->
-                                    <placement>a</placement>
-                                    <head>Implementation note:</head>
-                                </tag>
-                            </tags>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>

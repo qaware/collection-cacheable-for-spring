@@ -87,7 +87,7 @@ class MyRepository {
 } 
 ```
 
-See [this test repository](collection-cacheable-for-spring-starter/src/test/java/de/qaware/collectioncacheableforspring/CollectionCacheableTestRepository.java)
+See [this test repository](collection-cacheable-for-spring-starter/src/test/java/de/qaware/tools/collectioncacheableforspring/CollectionCacheableTestRepository.java)
 for a completely worked out example.
 
 ## Advanced usage

@@ -70,7 +70,7 @@ git commit -am "Release version $NEW_VERSION"
 git tag "$TAG_NAME"
 git push "$REMOTE_NAME" "refs/heads/master" "refs/tags/$TAG_NAME"
 
-echo "Updating versions in README and demo pom.xml..."
+echo "Updating versions in README..."
 
 sed -z -i -f - \
   README.md \

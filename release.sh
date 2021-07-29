@@ -82,7 +82,7 @@ s~\(\
 [ ]*<version>\).*\(</version>\)\
 ~\1$NEW_VERSION\2~
 SED_SCRIPT
-git commit -am "Use released version in README and demos"
+git commit -am "Use released version in README"
 
 mvn -q versions:set -DgenerateBackupPoms=false -DnextSnapshot=true >/dev/null
 git commit -am "Start development on next version"

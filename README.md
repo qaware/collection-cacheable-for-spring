@@ -47,7 +47,7 @@ class MyRepository {
     }
 
     // map key is MyEntity.id
-    Map<Long, MyEntity> findByIds(Set<Long> ids) {
+    Map<Long, MyEntity> findByIds(Collection<Long> ids) {
         // do efficient batch retrieve of many MyEntity's and build result map
     }
 } 
@@ -80,7 +80,7 @@ class MyRepository {
     }
 
     @CollectionCacheable(cacheNames = "myCache")
-    Map<Long, MyEntity> findByIds(Set<Long> ids) {
+    Map<Long, MyEntity> findByIds(Collection<Long> ids) {
         // do efficient batch retrieve of many MyEntity's and build result map
     }
 } 
@@ -118,7 +118,7 @@ the `putNull` flag on batch retrieval as follows:
 ```java
 class MyRepository {
     @CollectionCacheable(cacheNames = "myCache", putNull = true)
-    Map<Long, MyEntity> findByIds(Set<Long> ids) {
+    Map<Long, MyEntity> findByIds(Collection<Long> ids) {
         // do efficient batch retrieve of many MyEntity's and build result map
     }
 } 

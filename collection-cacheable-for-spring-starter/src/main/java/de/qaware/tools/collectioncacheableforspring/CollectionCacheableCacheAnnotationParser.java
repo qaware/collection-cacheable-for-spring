@@ -131,7 +131,7 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
                             " Method return type is not assignable from Map.",
-                    method.toString()));
+                    method));
         }
     }
 
@@ -140,8 +140,8 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
         if (parameterTypes.length != 1 || !parameterTypes[0].equals(Collection.class)) {
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
-                            " Did not find zero or one Collection argument.",
-                    method.toString()));
+                            " Did not find exactly one Collection argument",
+                    method));
         }
     }
 
@@ -160,20 +160,20 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
                             " Parameterized collection does not have exactly one type argument.",
-                    method.toString()));
+                    method));
         }
         ParameterizedType parameterizedMap = (ParameterizedType) method.getGenericReturnType();
         if (parameterizedMap.getActualTypeArguments().length != 2) {
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
                             " Parameterized map does not have exactly two type arguments.",
-                    method.toString()));
+                    method));
         }
         if (!parameterizedMap.getActualTypeArguments()[0].equals(parameterizedCollection.getActualTypeArguments()[0])) {
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
                             " The Map key type should be equal to the collection type.",
-                    method.toString()));
+                    method));
         }
     }
 

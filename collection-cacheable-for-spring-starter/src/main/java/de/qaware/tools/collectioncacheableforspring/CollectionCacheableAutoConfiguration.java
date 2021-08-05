@@ -36,11 +36,9 @@ import org.springframework.cache.interceptor.CacheOperationSource;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 
-@ComponentScan(basePackageClasses = CollectionCreator.class)
 @Configuration
 @SuppressWarnings("java:S1118")
 // suppress "Utility classes should not have public constructors" as Spring needs a public ctor

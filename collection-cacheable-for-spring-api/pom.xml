@@ -8,7 +8,7 @@
     <parent>
         <groupId>de.qaware.tools.collection-cacheable-for-spring</groupId>
         <artifactId>collection-cacheable-for-spring-parent</artifactId>
-        <version>1.0.3-SNAPSHOT</version>
+        <version>1.1.0</version>
     </parent>
 
     <dependencies>

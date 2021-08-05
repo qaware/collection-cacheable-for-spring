@@ -20,27 +20,46 @@
 
 package de.qaware.tools.collectioncacheableforspring;
 
+import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.cache.interceptor.CacheOperation;
 import org.springframework.cache.interceptor.CacheOperationInvoker;
 import org.springframework.cache.interceptor.CacheOperationSource;
+import org.springframework.cache.interceptor.CacheResolver;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.lang.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
 
     private static final Object NO_RESULT = new Object();
+    private final List<CollectionCreator> collectionCreators;
+
+    public CollectionCacheableCacheInterceptor(ObjectProvider<CollectionCreator> collectionCreators) {
+        this.collectionCreators = collectionCreators.stream().collect(Collectors.toList());
+    }
+
+    @Override
+    public void configure(@Nullable Supplier<CacheErrorHandler> errorHandler,
+                          @Nullable Supplier<KeyGenerator> keyGenerator,
+                          @Nullable Supplier<CacheResolver> cacheResolver,
+                          @Nullable Supplier<CacheManager> cacheManager) {
+        super.configure(errorHandler, keyGenerator, cacheResolver, cacheManager);
+    }
 
     @Override
     protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] invocationArgs) {
@@ -64,7 +83,7 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             return handleIsFindAll(invoker, context);
         }
 
-        Collection<?> idsArgument = injectCollectionArgument(invocationArgs);
+        Collection<?> idsArgument = injectCollectionArgument(method, invocationArgs);
         if (!context.isConditionPassingWithArgument(idsArgument)) {
             return invokeMethod(invoker);
         }
@@ -142,13 +161,22 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
         return null;
     }
 
-    private Collection<?> injectCollectionArgument(Object[] invocationArgs) {
+    private Collection<?> injectCollectionArgument(Method method,
+                                                   Object[] invocationArgs) {
         if (invocationArgs.length == 1 && invocationArgs[0] instanceof Collection) {
-            Collection<?> foundCollection = new LinkedList<>((Collection<?>) invocationArgs[0]);
+            Collection<?> foundCollection = createCollection(method.getParameterTypes()[0], invocationArgs[0]);
             invocationArgs[0] = foundCollection;
             return foundCollection;
         }
         throw new IllegalStateException("Did not find exactly one Collection argument");
+    }
+
+    private Collection<?> createCollection(Class<?> parameterType,
+                                           Object invocationArg) {
+        return collectionCreators.stream().filter(creator -> creator.canHandle(parameterType))
+                .findFirst()
+                .map(creator -> creator.create((Collection<?>) invocationArg))
+                .orElseThrow(() -> new IllegalStateException("Cannot find appropriate collection creator for " + parameterType));
     }
 
     @Nullable

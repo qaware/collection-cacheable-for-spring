@@ -37,7 +37,7 @@ public class CollectionCacheableTestRepository {
     }
 
     @CollectionCacheable(CACHE_NAME)
-    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdDeque(ArrayList<CollectionCacheableTestId> ids) {
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByArrayList(ArrayList<CollectionCacheableTestId> ids) {
         return findByIdsInternal(ids);
     }
 

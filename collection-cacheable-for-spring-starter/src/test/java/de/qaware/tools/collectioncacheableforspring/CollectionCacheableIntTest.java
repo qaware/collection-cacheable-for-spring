@@ -96,7 +96,7 @@ public class CollectionCacheableIntTest {
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
         // Throws exception if signature has classes that are not implemented
-        assertThatThrownBy(() -> sut.findByIdDeque(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))));
+        assertThatThrownBy(() -> sut.findByArrayList(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))));
     }
 
     @Test

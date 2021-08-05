@@ -65,6 +65,7 @@ public class CollectionCacheableAutoConfiguration {
     private static CacheInterceptor collectionCacheInterceptor(ConfigurableListableBeanFactory beanFactory) {
         CacheInterceptor interceptor = new CollectionCacheableCacheInterceptor(
                 beanFactory.getBeanProvider(CollectionCreator.class));
+        interceptor.setBeanFactory(beanFactory);
         interceptor.configure(
                 () -> beanFactory.getBeanProvider(CacheErrorHandler.class).getIfAvailable(),
                 () -> beanFactory.getBeanProvider(KeyGenerator.class).getIfAvailable(),

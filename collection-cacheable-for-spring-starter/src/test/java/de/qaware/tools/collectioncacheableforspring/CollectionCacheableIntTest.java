@@ -14,10 +14,19 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static de.qaware.tools.collectioncacheableforspring.CollectionCacheableTestRepository.CACHE_NAME;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -97,6 +106,7 @@ public class CollectionCacheableIntTest {
 
         // Throws exception if signature has classes that are not implemented
         assertThatThrownBy(() -> sut.findByArrayList(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))));
+        assertThatThrownBy(() -> sut.findByLinkedHashSet(new LinkedHashSet<>(setOf(SOME_KEY_1, SOME_KEY_2))));
     }
 
     @Test

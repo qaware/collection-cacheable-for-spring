@@ -21,9 +21,12 @@
 package de.qaware.tools.collectioncacheableforspring;
 
 import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
+import de.qaware.tools.collectioncacheableforspring.creator.DefaultCollectionCreator;
+import de.qaware.tools.collectioncacheableforspring.creator.SetCollectionCreator;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.AnnotationCacheOperationSource;
 import org.springframework.cache.annotation.SpringCacheAnnotationParser;
@@ -60,6 +63,18 @@ public class CollectionCacheableAutoConfiguration {
                 return bean;
             }
         });
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    public DefaultCollectionCreator collectionCacheableDefaultCollectionCreator() {
+        return new DefaultCollectionCreator();
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    public SetCollectionCreator collectionCacheableSetCollectionCreator() {
+        return new SetCollectionCreator();
     }
 
     private static CacheInterceptor collectionCacheInterceptor(ConfigurableListableBeanFactory beanFactory) {

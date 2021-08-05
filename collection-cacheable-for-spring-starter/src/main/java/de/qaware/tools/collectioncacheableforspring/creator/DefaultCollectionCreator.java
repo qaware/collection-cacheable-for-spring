@@ -20,14 +20,13 @@
 
 package de.qaware.tools.collectioncacheableforspring.creator;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.LinkedList;
 
-@Component
-public class DefaultCollectionCreator
-        implements CollectionCreator {
+public class DefaultCollectionCreator implements CollectionCreator {
+
+    public static final int ORDER = -100;
+
     @Override
     public boolean canHandle(Class<?> cls) {
         return cls.isAssignableFrom(LinkedList.class);
@@ -36,5 +35,10 @@ public class DefaultCollectionCreator
     @Override
     public <T> Collection<T> create(Collection<T> collection) {
         return new LinkedList<>(collection);
+    }
+
+    @Override
+    public int getOrder() {
+        return ORDER;
     }
 }

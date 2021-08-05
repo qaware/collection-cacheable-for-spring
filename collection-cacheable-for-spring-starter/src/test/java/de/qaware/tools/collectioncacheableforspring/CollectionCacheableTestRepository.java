@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,17 +38,22 @@ public class CollectionCacheableTestRepository {
     }
 
     @CollectionCacheable(CACHE_NAME)
-    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdSet(Set<CollectionCacheableTestId> ids) {
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsSet(Set<CollectionCacheableTestId> ids) {
         return findByIdsInternal(ids);
     }
 
     @CollectionCacheable(CACHE_NAME)
-    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByArrayList(ArrayList<CollectionCacheableTestId> ids) {
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsList(List<CollectionCacheableTestId> ids) {
         return findByIdsInternal(ids);
     }
 
     @CollectionCacheable(CACHE_NAME)
-    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByLinkedHashSet(LinkedHashSet<CollectionCacheableTestId> ids) {
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsArrayList(ArrayList<CollectionCacheableTestId> ids) {
+        return findByIdsInternal(ids);
+    }
+
+    @CollectionCacheable(CACHE_NAME)
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsLinkedHashSet(LinkedHashSet<CollectionCacheableTestId> ids) {
         return findByIdsInternal(ids);
     }
 

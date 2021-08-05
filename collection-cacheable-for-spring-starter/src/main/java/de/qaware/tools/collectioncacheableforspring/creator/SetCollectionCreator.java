@@ -26,8 +26,10 @@ import java.util.Collection;
 import java.util.HashSet;
 
 @Component
-public class SetCollectionCreator
-        implements CollectionCreator {
+public class SetCollectionCreator implements CollectionCreator {
+
+    public static final int ORDER = 0;
+
     @Override
     public boolean canHandle(Class<?> cls) {
         return cls.isAssignableFrom(HashSet.class);
@@ -36,5 +38,10 @@ public class SetCollectionCreator
     @Override
     public <T> Collection<T> create(Collection<T> collection) {
         return new HashSet<>(collection);
+    }
+
+    @Override
+    public int getOrder() {
+        return ORDER;
     }
 }

@@ -140,7 +140,7 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
         if (parameterTypes.length != 1 || !Collection.class.isAssignableFrom(parameterTypes[0])) {
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
-                            " Did not find exactly one Collection argument",
+                            " Did not find exactly one Collection-like argument",
                     method));
         }
     }

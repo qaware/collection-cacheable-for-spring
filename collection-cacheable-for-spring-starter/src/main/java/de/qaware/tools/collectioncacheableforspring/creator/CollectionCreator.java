@@ -18,11 +18,30 @@
 
 package de.qaware.tools.collectioncacheableforspring.creator;
 
+import org.springframework.core.Ordered;
+
 import java.util.Collection;
 
-public interface CollectionCreator {
+/**
+ * Collection creator used when a sub-set of the given arguments (IDs)
+ * needs to be constructed.
+ */
+public interface CollectionCreator extends Ordered {
 
+    /**
+     * Check if given type class can be handled.
+     *
+     * @param cls class type to be handled
+     * @return true if can be handled, false otherwise
+     */
     boolean canHandle(Class<?> cls);
 
+    /**
+     * Create a new modifiable collection with type as given to {@link #canHandle} and content given.
+     *
+     * @param collection initial content of created collection
+     * @param <T>        type of items
+     * @return created collection
+     */
     <T> Collection<T> create(Collection<T> collection);
 }

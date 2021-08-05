@@ -124,6 +124,14 @@ class MyRepository {
 } 
 ```
 
+### Using Set or List as method argument
+
+The methods annotated with `@CollectionCacheable` use the base interface `Collection` in the above examples, but
+also `List<>` and `Set<>` interfaces are supported. Note though that this may change the actual passed implementation
+to `LinkedList` or `HashSet`, respectively (see `DefaultCollectionCreator` and `SetCollectionCreator` implementations).
+You can add support for more collection-like types by providing beans deriving from `CollectionCreator`, or even
+override the given creators thanks to Spring Boot autoconfiguration.
+
 ## Contributing
 
 Please report [issues or feature requests](https://github.com/qaware/collection-cacheable-for-spring/issues).

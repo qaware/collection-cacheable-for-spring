@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,12 +55,12 @@ public class CollectionCacheableIntTest {
     private CacheManager cacheManager;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         when(cacheManager.getCache(CACHE_NAME)).thenReturn(new ConcurrentMapCache(CACHE_NAME));
     }
 
     @Test
-    public void findById() throws Exception {
+    public void findById() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
 
         // find it two times, but database is only asked once
@@ -70,7 +71,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findByIds() throws Exception {
+    public void findByIds() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
@@ -85,14 +86,14 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findByIdSet() throws Exception {
+    public void findByIdSet() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
         // find it two times, but database is only asked once
-        assertThat(sut.findByIdSet(setOf(SOME_KEY_1, SOME_KEY_2)))
+        assertThat(sut.findByIdsSet(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
-        assertThat(sut.findByIdSet(setOf(SOME_KEY_1, SOME_KEY_2)))
+        assertThat(sut.findByIdsSet(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
 
         verify(repository, times(1)).findById(SOME_KEY_1);
@@ -100,17 +101,36 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void throwsExceptionOnUnknownClasses() throws Exception {
+    public void findByIdList() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
+        // find it two times, but database is only asked once
+        assertThat(sut.findByIdsList(listOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
+        assertThat(sut.findByIdsList(listOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
+
+        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository, times(1)).findById(SOME_KEY_2);
+    }
+
+    @Test
+    public void throwsExceptionOnUnknownClasses() {
         // Throws exception if signature has classes that are not implemented
-        assertThatThrownBy(() -> sut.findByArrayList(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))));
-        assertThatThrownBy(() -> sut.findByLinkedHashSet(new LinkedHashSet<>(setOf(SOME_KEY_1, SOME_KEY_2))));
+        ArrayList<CollectionCacheableTestId> arrayList = new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2));
+        assertThatThrownBy(() -> sut.findByIdsArrayList(arrayList))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Cannot find appropriate collection creator for class java.util.ArrayList");
+
+        LinkedHashSet<CollectionCacheableTestId> linkedHashSet = new LinkedHashSet<>(setOf(SOME_KEY_1, SOME_KEY_2));
+        assertThatThrownBy(() -> sut.findByIdsLinkedHashSet(linkedHashSet))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Cannot find appropriate collection creator for class java.util.LinkedHashSet");
     }
 
     @Test
-    public void findByIdsAfterTwoFindById() throws Exception {
+    public void findByIdsAfterTwoFindById() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
@@ -125,7 +145,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findByIdsAfterOneFindById() throws Exception {
+    public void findByIdsAfterOneFindById() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
@@ -138,7 +158,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findByIdsWithCondition_notFulfilled() throws Exception {
+    public void findByIdsWithCondition_notFulfilled() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
         when(repository.findById(SOME_KEY_3)).thenReturn(SOME_VALUE_3);
@@ -153,7 +173,7 @@ public class CollectionCacheableIntTest {
 
 
     @Test
-    public void findByIdsWithCondition_fulfilled() throws Exception {
+    public void findByIdsWithCondition_fulfilled() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
@@ -168,7 +188,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findByIdsWithUnless_notFulfilled() throws Exception {
+    public void findByIdsWithUnless_notFulfilled() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
 
         // the findByIdsWithUnless() fills the cache as the unless is not met
@@ -181,7 +201,7 @@ public class CollectionCacheableIntTest {
 
 
     @Test
-    public void findByIdsWithUnless_fulfilled() throws Exception {
+    public void findByIdsWithUnless_fulfilled() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
         when(repository.findById(SOME_KEY_3)).thenReturn(SOME_VALUE_3);
@@ -197,7 +217,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findByIdsWithKey() throws Exception {
+    public void findByIdsWithKey() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
 
@@ -228,7 +248,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findAll() throws Exception {
+    public void findAll() {
         when(repository.findAll()).thenReturn(mapOf(SOME_KEY_1, SOME_VALUE_1));
 
         // the findAll() fills the cache already!
@@ -239,7 +259,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findAllWithUnless_notFulfilled() throws Exception {
+    public void findAllWithUnless_notFulfilled() {
         when(repository.findAll()).thenReturn(mapOf(SOME_KEY_1, SOME_VALUE_1));
 
         // the findAllWithUnless() fills the cache as the unless is not met
@@ -251,7 +271,7 @@ public class CollectionCacheableIntTest {
 
 
     @Test
-    public void findAllWithUnless_fulfilled() throws Exception {
+    public void findAllWithUnless_fulfilled() {
         when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
         when(repository.findAll()).thenReturn(mapOf(SOME_KEY_1, SOME_VALUE_1, SOME_KEY_2, SOME_VALUE_2));
 
@@ -263,7 +283,7 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void findAllWithKey() throws Exception {
+    public void findAllWithKey() {
         when(repository.findAll()).thenReturn(mapOf(SOME_KEY_1, SOME_VALUE_1));
 
         assertThat(sut.findAllWithKey()).containsOnly(entry(SOME_KEY_1, SOME_VALUE_1));
@@ -283,6 +303,11 @@ public class CollectionCacheableIntTest {
     @SafeVarargs
     private static <T> Set<T> setOf(T... items) {
         return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(items)));
+    }
+
+    @SafeVarargs
+    private static <T> List<T> listOf(T... items) {
+        return Collections.unmodifiableList(Arrays.asList(items));
     }
 
     @SuppressWarnings("unchecked")

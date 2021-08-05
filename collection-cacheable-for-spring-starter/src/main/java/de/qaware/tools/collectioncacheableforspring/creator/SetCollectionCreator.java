@@ -20,12 +20,9 @@
 
 package de.qaware.tools.collectioncacheableforspring.creator;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.HashSet;
 
-@Component
 public class SetCollectionCreator implements CollectionCreator {
 
     public static final int ORDER = 0;

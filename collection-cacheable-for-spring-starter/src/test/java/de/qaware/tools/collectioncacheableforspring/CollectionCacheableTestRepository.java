@@ -3,9 +3,7 @@ package de.qaware.tools.collectioncacheableforspring;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 @CacheConfig(cacheNames = CollectionCacheableTestRepository.CACHE_NAME)
@@ -30,6 +28,16 @@ public class CollectionCacheableTestRepository {
 
     @CollectionCacheable(CACHE_NAME)
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIds(Collection<CollectionCacheableTestId> ids) {
+        return findByIdsInternal(ids);
+    }
+
+    @CollectionCacheable(CACHE_NAME)
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdSet(Set<CollectionCacheableTestId> ids) {
+        return findByIdsInternal(ids);
+    }
+
+    @CollectionCacheable(CACHE_NAME)
+    public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdDeque(ArrayList<CollectionCacheableTestId> ids) {
         return findByIdsInternal(ids);
     }
 

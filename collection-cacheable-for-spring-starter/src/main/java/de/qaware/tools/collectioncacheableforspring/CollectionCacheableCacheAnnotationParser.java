@@ -137,7 +137,7 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
 
     private static void validateMethodArguments(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 1 || !parameterTypes[0].equals(Collection.class)) {
+        if (parameterTypes.length != 1 || !Collection.class.isAssignableFrom(parameterTypes[0])) {
             throw new IllegalStateException(String.format(
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
                             " Did not find exactly one Collection argument",

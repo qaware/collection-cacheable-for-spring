@@ -20,6 +20,7 @@
 
 package de.qaware.tools.collectioncacheableforspring;
 
+import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -32,9 +33,11 @@ import org.springframework.cache.interceptor.CacheOperationSource;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 
+@ComponentScan(basePackageClasses = CollectionCreator.class)
 @Configuration
 @SuppressWarnings("java:S1118")
 // suppress "Utility classes should not have public constructors" as Spring needs a public ctor
@@ -60,7 +63,8 @@ public class CollectionCacheableAutoConfiguration {
     }
 
     private static CacheInterceptor collectionCacheInterceptor(ConfigurableListableBeanFactory beanFactory) {
-        CacheInterceptor interceptor = new CollectionCacheableCacheInterceptor();
+        CacheInterceptor interceptor = new CollectionCacheableCacheInterceptor(
+                beanFactory.getBeanProvider(CollectionCreator.class));
         interceptor.configure(
                 () -> beanFactory.getBeanProvider(CacheErrorHandler.class).getIfAvailable(),
                 () -> beanFactory.getBeanProvider(KeyGenerator.class).getIfAvailable(),

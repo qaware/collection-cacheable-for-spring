@@ -14,16 +14,10 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static de.qaware.tools.collectioncacheableforspring.CollectionCacheableTestRepository.CACHE_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -79,6 +73,30 @@ public class CollectionCacheableIntTest {
 
         verify(repository, times(1)).findById(SOME_KEY_1);
         verify(repository, times(1)).findById(SOME_KEY_2);
+    }
+
+    @Test
+    public void findByIdSet() throws Exception {
+        when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
+        when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
+
+        // find it two times, but database is only asked once
+        assertThat(sut.findByIdSet(setOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
+        assertThat(sut.findByIdSet(setOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
+
+        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository, times(1)).findById(SOME_KEY_2);
+    }
+
+    @Test
+    public void throwsExceptionOnUnknownClasses() throws Exception {
+        when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
+        when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
+
+        // Throws exception if signature has classes that are not implemented
+        assertThatThrownBy(() -> sut.findByIdDeque(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))));
     }
 
     @Test

@@ -1,0 +1,2 @@
+logging.level:
+  de.qaware.tools.collectioncacheableforspring: trace

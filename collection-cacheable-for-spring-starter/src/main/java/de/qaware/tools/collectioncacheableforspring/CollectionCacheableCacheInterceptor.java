@@ -72,6 +72,9 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
 
         Collection<?> idsArgument = injectCollectionArgument(method, invocationArgs);
         if (!context.isConditionPassingWithArgument(idsArgument)) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("Invoking method as condition is not passing with argument " + idsArgument);
+            }
             return invokeMethod(invoker);
         }
 
@@ -84,11 +87,16 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             if (cacheHit != null) {
                 if (cacheHit.get() != null) {
                     result.put(id, cacheHit.get());
+                } else if (logger.isTraceEnabled()) {
+                    logger.trace("Ignoring null cache hit for key '" + key + "'");
                 }
                 idIterator.remove();
             }
         }
         if (!idsArgument.isEmpty()) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("Invoking method with remaining ids " + idsArgument);
+            }
             Map<?, ?> uncachedResult = invokeMethod(invoker);
             result.putAll(uncachedResult);
             if (context.canPutToCache(uncachedResult)) {
@@ -104,6 +112,7 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
     private Object handleIsFindAll(CacheOperationInvoker invoker, CollectionCacheableOperationContext context) {
         Map<?, ?> uncachedResult = invokeMethod(invoker);
         if (context.canPutToCache(uncachedResult)) {
+            logger.trace("Putting result into cache for findAll case");
             putUncachedResultToCache(uncachedResult, context);
         }
         return uncachedResult;
@@ -113,6 +122,9 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
         for (Map.Entry<?, ?> entry : uncachedResult.entrySet()) {
             Object key = context.generateKeyFromSingleArgument(entry.getKey());
             for (Cache cache : context.getCaches()) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Putting value for key '" + key + "' into cache '" + cache.getName() + "'");
+                }
                 doPut(cache, key, entry.getValue());
             }
         }
@@ -123,6 +135,9 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             if (!resultKeys.contains(id)) {
                 Object key = context.generateKeyFromSingleArgument(id);
                 for (Cache cache : context.getCaches()) {
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Putting explicit null for key '" + key + "' into cache '" + cache.getName() + "'");
+                    }
                     doPut(cache, key, null);
                 }
             }
@@ -142,6 +157,9 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
         for (Cache cache : context.getCaches()) {
             Cache.ValueWrapper wrapper = doGet(cache, key);
             if (wrapper != null) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Found cache hit for key '" + key + "' from cache '" + cache.getName() + "'");
+                }
                 return wrapper;
             }
         }
@@ -189,25 +207,27 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             CacheOperation operation, Method method, Object target, Class<?> targetClass) {
         CacheOperationMetadata metadata = getCacheOperationMetadata(operation, method, targetClass);
         Object[] currentArgs = new Object[]{null};
-        return new CollectionCacheableOperationContext(metadata, currentArgs, target);
+        return new CollectionCacheableOperationContext(metadata, operation, currentArgs, target);
     }
 
     protected class CollectionCacheableOperationContext extends CacheOperationContext {
+        private final CacheOperation operation;
         private final Object[] currentArgs;
 
-        public CollectionCacheableOperationContext(CacheOperationMetadata metadata, Object[] currentArgs, Object target) {
+        public CollectionCacheableOperationContext(CacheOperationMetadata metadata, CacheOperation operation, Object[] currentArgs, Object target) {
             super(metadata, currentArgs, target);
+            this.operation = operation;
             this.currentArgs = currentArgs;
         }
 
         public Object generateKeyFromSingleArgument(Object arg) {
             currentArgs[0] = arg;
-            return generateKey(arg); // provide arg as result as well for findAll case
-        }
-
-        @Override
-        public boolean isConditionPassing(Object result) {
-            return super.isConditionPassing(result);
+            Object key = generateKey(arg);
+            if (key == null) {
+                throw new IllegalArgumentException("Null key returned for cache operation (maybe you are " +
+                        "using named params on classes without debug info?) " + operation);
+            }
+            return key; // provide arg as result as well for findAll case
         }
 
         @Override

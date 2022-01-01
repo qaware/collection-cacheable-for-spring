@@ -22,7 +22,6 @@ package de.qaware.tools.collectioncacheableforspring;
 
 import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
 import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.CacheInterceptor;
 import org.springframework.cache.interceptor.CacheOperation;
@@ -36,17 +35,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
 
     private static final Object NO_RESULT = new Object();
-    private final transient List<CollectionCreator> collectionCreators;
-
-    public CollectionCacheableCacheInterceptor(ObjectProvider<CollectionCreator> collectionCreators) {
-        this.collectionCreators = collectionCreators.stream().collect(Collectors.toList());
-    }
 
     @Override
     protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] invocationArgs) {
@@ -69,8 +64,9 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
         if (operation.isFindAll()) {
             return handleIsFindAll(invoker, context);
         }
+        CollectionCreator collectionCreator = Objects.requireNonNull(operation.getCollectionCreator(), "collectionCreator must be set for non-isFindAll operations");
 
-        Collection<?> idsArgument = injectCollectionArgument(method, invocationArgs);
+        Collection<?> idsArgument = injectCollectionArgument(collectionCreator, invocationArgs);
         if (!context.isConditionPassingWithArgument(idsArgument)) {
             if (logger.isTraceEnabled()) {
                 logger.trace("Invoking method as condition is not passing with argument " + idsArgument);
@@ -166,23 +162,13 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
         return null;
     }
 
-    private Collection<?> injectCollectionArgument(Method method,
-                                                   Object[] invocationArgs) {
+    private static Collection<?> injectCollectionArgument(CollectionCreator collectionCreator, Object[] invocationArgs) {
         if (invocationArgs.length == 1 && invocationArgs[0] instanceof Collection) {
-            // there's only one invocation arg, so method should have one parameter type
-            Class<?> parameterType = method.getParameterTypes()[0];
-            Collection<?> foundCollection = createModifiableCollection(parameterType, (Collection<?>) invocationArgs[0]);
-            invocationArgs[0] = foundCollection;
-            return foundCollection;
+            Collection<?> createdCollection = collectionCreator.create((Collection<?>) invocationArgs[0]);
+            invocationArgs[0] = createdCollection;
+            return createdCollection;
         }
         throw new IllegalStateException("Did not find exactly one Collection-like argument");
-    }
-
-    private Collection<?> createModifiableCollection(Class<?> parameterType, Collection<?> collection) {
-        return collectionCreators.stream().filter(creator -> creator.canHandle(parameterType))
-                .findFirst()
-                .map(creator -> creator.create(collection))
-                .orElseThrow(() -> new IllegalStateException("Cannot find appropriate collection creator for " + parameterType));
     }
 
     @Nullable

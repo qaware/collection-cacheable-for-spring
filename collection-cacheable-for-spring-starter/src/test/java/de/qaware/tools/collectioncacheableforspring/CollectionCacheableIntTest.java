@@ -19,14 +19,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static de.qaware.tools.collectioncacheableforspring.CollectionCacheableTestRepository.CACHE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -116,17 +114,11 @@ public class CollectionCacheableIntTest {
     }
 
     @Test
-    public void throwsExceptionOnUnknownClasses() {
-        // Throws exception if signature has classes that are not implemented
-        ArrayList<CollectionCacheableTestId> arrayList = new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2));
-        assertThatThrownBy(() -> sut.findByIdsArrayList(arrayList))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Cannot find appropriate collection creator for class java.util.ArrayList");
-
-        LinkedHashSet<CollectionCacheableTestId> linkedHashSet = new LinkedHashSet<>(setOf(SOME_KEY_1, SOME_KEY_2));
-        assertThatThrownBy(() -> sut.findByIdsLinkedHashSet(linkedHashSet))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Cannot find appropriate collection creator for class java.util.LinkedHashSet");
+    public void findByIdArrayListCollectionCreator() {
+        when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
+        when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
+        assertThat(sut.findByIdsArrayList(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))))
+                .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
     }
 
     @Test
@@ -295,7 +287,7 @@ public class CollectionCacheableIntTest {
     @SpringBootConfiguration
     @EnableCaching
     @EnableAutoConfiguration
-    @Import({CollectionCacheableTestRepository.class})
+    @Import({CollectionCacheableTestRepository.class, ArrayListCollectionCreator.class})
     public static class TestConfig {
 
     }

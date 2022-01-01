@@ -39,45 +39,31 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @SuppressWarnings("java:S1118")
 // suppress "Utility classes should not have public constructors" as Spring needs a public ctor
 public class CollectionCacheableAutoConfiguration {
-    private static final CacheOperationSource CACHE_OPERATION_SOURCE = new AnnotationCacheOperationSource(
-            new SpringCacheAnnotationParser(),
-            new CollectionCacheableCacheAnnotationParser()
-    );
 
     @Bean
     public static BeanFactoryPostProcessor beanFactoryPostProcessor() {
         return beanFactory -> beanFactory.addBeanPostProcessor(new BeanPostProcessor() {
+
+            private final CacheOperationSource cacheOperationSource = cacheOperationSource(beanFactory);
+
             @Override
             public Object postProcessBeforeInitialization(Object bean, String beanName) {
                 if (bean instanceof CacheOperationSource) {
-                    return CACHE_OPERATION_SOURCE;
+                    return cacheOperationSource;
                 } else if (bean instanceof CacheInterceptor) {
-                    return collectionCacheInterceptor(beanFactory);
+                    return collectionCacheInterceptor(beanFactory, cacheOperationSource);
                 }
                 return bean;
             }
         });
     }
 
-    @ConditionalOnMissingBean
-    @Bean
-    public DefaultCollectionCreator collectionCacheableDefaultCollectionCreator() {
-        return new DefaultCollectionCreator();
-    }
-
-    @ConditionalOnMissingBean
-    @Bean
-    public SetCollectionCreator collectionCacheableSetCollectionCreator() {
-        return new SetCollectionCreator();
-    }
-
-    private static CacheInterceptor collectionCacheInterceptor(ConfigurableListableBeanFactory beanFactory) {
-        CacheInterceptor interceptor = new CollectionCacheableCacheInterceptor(
-                beanFactory.getBeanProvider(CollectionCreator.class));
+    private static CacheInterceptor collectionCacheInterceptor(ConfigurableListableBeanFactory beanFactory, CacheOperationSource cacheOperationSource) {
+        CacheInterceptor interceptor = new CollectionCacheableCacheInterceptor();
         interceptor.setBeanFactory(beanFactory);
         interceptor.configure(
                 () -> beanFactory.getBeanProvider(CacheErrorHandler.class).getIfAvailable(),
@@ -85,7 +71,26 @@ public class CollectionCacheableAutoConfiguration {
                 () -> beanFactory.getBeanProvider(CacheResolver.class).getIfAvailable(),
                 () -> beanFactory.getBeanProvider(CacheManager.class).getIfAvailable()
         );
-        interceptor.setCacheOperationSource(CACHE_OPERATION_SOURCE);
+        interceptor.setCacheOperationSource(cacheOperationSource);
         return interceptor;
+    }
+
+    private static CacheOperationSource cacheOperationSource(ConfigurableListableBeanFactory beanFactory) {
+        return new AnnotationCacheOperationSource(
+                new SpringCacheAnnotationParser(),
+                new CollectionCacheableCacheAnnotationParser(beanFactory.getBeansOfType(CollectionCreator.class).values())
+        );
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DefaultCollectionCreator collectionCacheableDefaultCollectionCreator() {
+        return new DefaultCollectionCreator();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SetCollectionCreator collectionCacheableSetCollectionCreator() {
+        return new SetCollectionCreator();
     }
 }

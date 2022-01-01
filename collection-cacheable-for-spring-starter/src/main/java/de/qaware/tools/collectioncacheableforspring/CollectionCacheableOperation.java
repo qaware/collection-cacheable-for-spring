@@ -20,6 +20,7 @@
 
 package de.qaware.tools.collectioncacheableforspring;
 
+import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
 import org.springframework.cache.interceptor.CachePutOperation;
 
 public class CollectionCacheableOperation extends CachePutOperation {
@@ -28,10 +29,13 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
     private final boolean putNull;
 
+    private final CollectionCreator collectionCreator;
+
     public CollectionCacheableOperation(Builder b) {
         super(b);
         this.isFindAll = b.isFindAll;
         this.putNull = b.putNull;
+        this.collectionCreator = b.collectionCreator;
     }
 
     public boolean isFindAll() {
@@ -40,6 +44,10 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
     public boolean isPutNull() {
         return putNull;
+    }
+
+    public CollectionCreator getCollectionCreator() {
+        return collectionCreator;
     }
 
     @Override
@@ -58,6 +66,8 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
         private boolean putNull;
 
+        private CollectionCreator collectionCreator;
+
         public void setFindAll(boolean findAll) {
             isFindAll = findAll;
         }
@@ -66,13 +76,23 @@ public class CollectionCacheableOperation extends CachePutOperation {
             this.putNull = putNull;
         }
 
+        public void setCollectionCreator(CollectionCreator collectionCreator) {
+            this.collectionCreator = collectionCreator;
+        }
+
         @Override
         protected StringBuilder getOperationDescription() {
-            return super.getOperationDescription()
+            StringBuilder sb = super.getOperationDescription()
                     .append(" | isFindAll=")
-                    .append(this.isFindAll)
+                    .append(isFindAll)
                     .append(" | putNull=")
-                    .append(this.putNull);
+                    .append(putNull);
+            if (this.collectionCreator != null) {
+                sb
+                        .append(" | collectionCreator=")
+                        .append(this.collectionCreator.getClass().getSimpleName());
+            }
+            return sb;
         }
 
         @Override

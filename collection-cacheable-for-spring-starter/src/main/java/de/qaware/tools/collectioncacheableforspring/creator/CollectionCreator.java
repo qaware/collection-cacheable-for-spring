@@ -32,7 +32,7 @@ public interface CollectionCreator extends Ordered {
      * Check if given type class can be handled.
      *
      * @param cls class type to be handled
-     * @return true if can be handled, false otherwise
+     * @return true if type can be handled, false otherwise
      */
     boolean canHandle(Class<?> cls);
 

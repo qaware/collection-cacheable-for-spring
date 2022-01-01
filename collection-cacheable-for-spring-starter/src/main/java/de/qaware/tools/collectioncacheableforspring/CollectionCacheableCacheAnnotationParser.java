@@ -20,6 +20,7 @@
 
 package de.qaware.tools.collectioncacheableforspring;
 
+import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
 import org.springframework.cache.annotation.CacheAnnotationParser;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.interceptor.CacheOperation;
@@ -49,6 +50,12 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
 
     private static final String MESSAGE_INVALID_CACHE_ANNOTATION_CONFIGURATION =
             "Invalid cache annotation configuration on '%s'.";
+
+    private final Collection<CollectionCreator> collectionCreators;
+
+    public CollectionCacheableCacheAnnotationParser(Collection<CollectionCreator> collectionCreators) {
+        this.collectionCreators = collectionCreators;
+    }
 
     @Override
     public Collection<CacheOperation> parseCacheAnnotations(Class<?> type) {
@@ -105,12 +112,23 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
         builder.setUnless(collectionCacheable.unless());
         builder.setFindAll(isFindAll);
         builder.setPutNull(collectionCacheable.putNull());
+        if (!isFindAll) {
+            builder.setCollectionCreator(findCollectionCreator(method));
+        }
 
         defaultConfig.applyDefault(builder);
         CollectionCacheableOperation op = builder.build();
         validateCollectionCacheableOperation(method, op);
 
         return op;
+    }
+
+    private CollectionCreator findCollectionCreator(Method method) {
+        // non-isFindAll has exactly one collection-like parameter
+        Class<?> parameterType = method.getParameterTypes()[0];
+        return collectionCreators.stream().filter(creator -> creator.canHandle(parameterType))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Cannot find appropriate collection creator for method " + method + ". Available are: " + collectionCreators));
     }
 
     private boolean checkFindAll(Method method) {

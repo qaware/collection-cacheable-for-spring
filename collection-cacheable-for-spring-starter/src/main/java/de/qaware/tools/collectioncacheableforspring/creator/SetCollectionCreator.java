@@ -25,7 +25,7 @@ import java.util.HashSet;
 
 public class SetCollectionCreator implements CollectionCreator {
 
-    public static final int ORDER = 0;
+    public static final int ORDER = 100;
 
     @Override
     public boolean canHandle(Class<?> cls) {

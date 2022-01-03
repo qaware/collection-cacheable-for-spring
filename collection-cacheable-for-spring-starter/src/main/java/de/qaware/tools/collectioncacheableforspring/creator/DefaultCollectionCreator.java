@@ -25,7 +25,7 @@ import java.util.LinkedList;
 
 public class DefaultCollectionCreator implements CollectionCreator {
 
-    public static final int ORDER = -100;
+    public static final int ORDER = 100;
 
     @Override
     public boolean canHandle(Class<?> cls) {

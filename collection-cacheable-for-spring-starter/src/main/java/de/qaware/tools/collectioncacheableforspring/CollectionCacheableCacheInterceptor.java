@@ -21,6 +21,7 @@
 package de.qaware.tools.collectioncacheableforspring;
 
 import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
+import de.qaware.tools.collectioncacheableforspring.returnvalue.ReturnValueConverter;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.CacheInterceptor;
@@ -36,7 +37,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
@@ -44,6 +44,7 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
     private static final Object NO_RESULT = new Object();
 
     @Override
+    @Nullable
     protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] invocationArgs) {
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
         CacheOperationSource cacheOperationSource = getCacheOperationSource();
@@ -62,7 +63,7 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
         CollectionCacheableOperationContext context = getCollectionCacheableOperationContext(operation, method, target, targetClass);
 
         if (operation.isFindAll()) {
-            return handleIsFindAll(invoker, context);
+            return handleIsFindAll(invoker, operation.getReturnValueConverter(), context);
         }
         CollectionCreator collectionCreator = Objects.requireNonNull(operation.getCollectionCreator(), "collectionCreator must be set for non-isFindAll operations");
 
@@ -71,10 +72,30 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             if (logger.isTraceEnabled()) {
                 logger.trace("Invoking method as condition is not passing with argument " + idsArgument);
             }
-            return invokeMethod(invoker);
+            return invoker.invoke();
         }
 
-        Map<Object, Object> result = new HashMap<>();
+        Map<Object, Object> cacheResult = findIdsInCache(idsArgument, context);
+
+        if (idsArgument.isEmpty()) {
+            return operation.getReturnValueConverter().convert(null, cacheResult);
+        }
+        if (logger.isTraceEnabled()) {
+            logger.trace("Invoking method with remaining ids " + idsArgument);
+        }
+        Object uncachedResult = invoker.invoke();
+        ReturnValueConverter.MapLikeReturnValue returnValue = operation.getReturnValueConverter().convert(uncachedResult, cacheResult);
+        if (context.canPutToCache(uncachedResult)) {
+            putUncachedResultToCache(returnValue, context);
+            if (operation.isPutNull()) {
+                putNullToCache(returnValue, idsArgument, context);
+            }
+        }
+        return returnValue;
+    }
+
+    private Map<Object, Object> findIdsInCache(Collection<?> idsArgument, CollectionCacheableOperationContext context) {
+        Map<Object, Object> cacheResult = new HashMap<>();
         Iterator<?> idIterator = idsArgument.iterator();
         while (idIterator.hasNext()) {
             Object id = idIterator.next();
@@ -82,53 +103,41 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
             Cache.ValueWrapper cacheHit = findInCaches(context, key);
             if (cacheHit != null) {
                 if (cacheHit.get() != null) {
-                    result.put(id, cacheHit.get());
+                    cacheResult.put(id, cacheHit.get());
                 } else if (logger.isTraceEnabled()) {
                     logger.trace("Ignoring null cache hit for key '" + key + "'");
                 }
                 idIterator.remove();
             }
         }
-        if (!idsArgument.isEmpty()) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("Invoking method with remaining ids " + idsArgument);
-            }
-            Map<?, ?> uncachedResult = invokeMethod(invoker);
-            result.putAll(uncachedResult);
-            if (context.canPutToCache(uncachedResult)) {
-                putUncachedResultToCache(uncachedResult, context);
-                if (operation.isPutNull()) {
-                    putNullToCache(uncachedResult.keySet(), idsArgument, context);
-                }
-            }
-        }
-        return result;
+        return cacheResult;
     }
 
-    private Object handleIsFindAll(CacheOperationInvoker invoker, CollectionCacheableOperationContext context) {
-        Map<?, ?> uncachedResult = invokeMethod(invoker);
-        if (context.canPutToCache(uncachedResult)) {
+    private Object handleIsFindAll(CacheOperationInvoker invoker, ReturnValueConverter returnValueConverter, CollectionCacheableOperationContext context) {
+        Object invocationResult = invoker.invoke();
+        if (context.canPutToCache(invocationResult)) {
             logger.trace("Putting result into cache for findAll case");
-            putUncachedResultToCache(uncachedResult, context);
+            ReturnValueConverter.MapLikeReturnValue returnValue = returnValueConverter.convert(invocationResult);
+            putUncachedResultToCache(returnValue, context);
         }
-        return uncachedResult;
+        return invocationResult;
     }
 
-    private void putUncachedResultToCache(Map<?, ?> uncachedResult, CollectionCacheableOperationContext context) {
-        for (Map.Entry<?, ?> entry : uncachedResult.entrySet()) {
-            Object key = context.generateKeyFromSingleArgument(entry.getKey());
+    private void putUncachedResultToCache(ReturnValueConverter.MapLikeReturnValue returnValue, CollectionCacheableOperationContext context) {
+        returnValue.forEach((key, value) -> {
+            Object cacheKey = context.generateKeyFromSingleArgument(key);
             for (Cache cache : context.getCaches()) {
                 if (logger.isTraceEnabled()) {
-                    logger.trace("Putting value for key '" + key + "' into cache '" + cache.getName() + "'");
+                    logger.trace("Putting value for key '" + cacheKey + "' into cache '" + cache.getName() + "'");
                 }
-                doPut(cache, key, entry.getValue());
+                doPut(cache, cacheKey, value);
             }
-        }
+        });
     }
 
-    private void putNullToCache(Set<?> resultKeys, Collection<?> idsArgument, CollectionCacheableOperationContext context) {
+    private void putNullToCache(ReturnValueConverter.MapLikeReturnValue returnValue, Collection<?> idsArgument, CollectionCacheableOperationContext context) {
         for (Object id : idsArgument) {
-            if (!resultKeys.contains(id)) {
+            if (!returnValue.containsKey(id)) {
                 Object key = context.generateKeyFromSingleArgument(id);
                 for (Cache cache : context.getCaches()) {
                     if (logger.isTraceEnabled()) {
@@ -138,14 +147,6 @@ public class CollectionCacheableCacheInterceptor extends CacheInterceptor {
                 }
             }
         }
-    }
-
-    private Map<?, ?> invokeMethod(CacheOperationInvoker invoker) {
-        Object result = invoker.invoke();
-        if (result instanceof Map) {
-            return (Map<?, ?>) result;
-        }
-        throw new IllegalStateException("Expecting result of invocation to be a Map");
     }
 
     @Nullable

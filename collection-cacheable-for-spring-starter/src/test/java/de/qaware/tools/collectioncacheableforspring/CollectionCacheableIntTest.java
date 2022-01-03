@@ -1,5 +1,6 @@
 package de.qaware.tools.collectioncacheableforspring;
 
+import de.qaware.tools.collectioncacheableforspring.returnvalue.ListReturnValueConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -42,6 +44,8 @@ public class CollectionCacheableIntTest {
     private static final CollectionCacheableTestValue SOME_VALUE_2 = new CollectionCacheableTestValue("some-value-2");
     private static final CollectionCacheableTestId SOME_KEY_3 = new CollectionCacheableTestId("some-key-3");
     private static final CollectionCacheableTestValue SOME_VALUE_3 = new CollectionCacheableTestValue("some-value-3");
+    private static final CollectionCacheableTestEntity SOME_ENTITY_1 = new CollectionCacheableTestEntity(SOME_KEY_1, SOME_VALUE_1);
+    private static final CollectionCacheableTestEntity SOME_ENTITY_2 = new CollectionCacheableTestEntity(SOME_KEY_2, SOME_VALUE_2);
 
     @Autowired
     private CollectionCacheableTestRepository sut;
@@ -65,7 +69,7 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findById(SOME_KEY_1)).isEqualTo(SOME_VALUE_1);
         assertThat(sut.findById(SOME_KEY_1)).isEqualTo(SOME_VALUE_1);
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_1);
     }
 
     @Test
@@ -79,8 +83,8 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIds(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -94,8 +98,8 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIdsSet(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -109,8 +113,8 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIdsList(listOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -119,6 +123,25 @@ public class CollectionCacheableIntTest {
         when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
         assertThat(sut.findByIdsArrayList(new ArrayList<>(setOf(SOME_KEY_1, SOME_KEY_2))))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
+    }
+
+    @Test
+    public void findByIdsListOfValues() {
+        when(repository.findById(SOME_KEY_1)).thenReturn(SOME_VALUE_1);
+        when(repository.findById(SOME_KEY_2)).thenReturn(SOME_VALUE_2);
+
+        assertThat(sut.findByIdsListOfValues(setOf(SOME_KEY_1)))
+                .containsExactlyInAnyOrder(SOME_ENTITY_1);
+
+        assertThat(sut.findByIdsListOfValues(setOf(SOME_KEY_2)))
+                .containsExactlyInAnyOrder(SOME_ENTITY_2);
+
+        assertThat(sut.findByIdsListOfValues(setOf(SOME_KEY_1, SOME_KEY_2)))
+                .containsExactlyInAnyOrder(SOME_ENTITY_1, SOME_ENTITY_2);
+
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -132,8 +155,8 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIds(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -146,7 +169,7 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIds(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_1);
     }
 
     @Test
@@ -175,8 +198,8 @@ public class CollectionCacheableIntTest {
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
         assertThat(sut.findById(SOME_KEY_2)).isEqualTo(SOME_VALUE_2);
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -188,7 +211,7 @@ public class CollectionCacheableIntTest {
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1));
         assertThat(sut.findById(SOME_KEY_1)).isEqualTo(SOME_VALUE_1);
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_1);
     }
 
 
@@ -204,7 +227,7 @@ public class CollectionCacheableIntTest {
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2), entry(SOME_KEY_3, SOME_VALUE_3));
         assertThat(sut.findById(SOME_KEY_2)).isEqualTo(SOME_VALUE_2);
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_1);
         verify(repository, times(2)).findById(SOME_KEY_2);
     }
 
@@ -222,8 +245,8 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIdsWithKey(setOf(SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_2, SOME_VALUE_2));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -235,8 +258,8 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findByIdsWithPutNull(setOf(SOME_KEY_1, SOME_KEY_2)))
                 .containsOnly(entry(SOME_KEY_1, SOME_VALUE_1));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
-        verify(repository, times(1)).findById(SOME_KEY_2);
+        verify(repository).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_2);
     }
 
     @Test
@@ -271,7 +294,7 @@ public class CollectionCacheableIntTest {
         assertThat(sut.findAllWithUnless()).containsOnly(entry(SOME_KEY_1, SOME_VALUE_1), entry(SOME_KEY_2, SOME_VALUE_2));
         assertThat(sut.findByIds(setOf(SOME_KEY_1))).containsOnly(entry(SOME_KEY_1, SOME_VALUE_1));
 
-        verify(repository, times(1)).findById(SOME_KEY_1);
+        verify(repository).findById(SOME_KEY_1);
     }
 
     @Test
@@ -284,10 +307,28 @@ public class CollectionCacheableIntTest {
         verify(repository, never()).findById(any());
     }
 
+    @Test
+    public void findAllListOfValues() {
+        when(repository.findAll()).thenReturn(mapOf(SOME_KEY_1, SOME_VALUE_1));
+
+        assertThat(sut.findAllListOfValues())
+                .containsExactlyInAnyOrder(SOME_ENTITY_1);
+        assertThat(sut.findByIdsListOfValues(setOf(SOME_KEY_1)))
+                .containsExactlyInAnyOrder(SOME_ENTITY_1);
+
+        verify(repository).findAll();
+        verify(repository, never()).findById(any());
+        verifyNoMoreInteractions(repository);
+    }
+
     @SpringBootConfiguration
     @EnableCaching
     @EnableAutoConfiguration
-    @Import({CollectionCacheableTestRepository.class, ArrayListCollectionCreator.class})
+    @Import({
+            CollectionCacheableTestRepository.class,
+            ArrayListCollectionCreator.class,
+            ListReturnValueConverter.class
+    })
     public static class TestConfig {
 
     }

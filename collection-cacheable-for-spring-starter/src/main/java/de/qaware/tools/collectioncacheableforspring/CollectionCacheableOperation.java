@@ -21,6 +21,7 @@
 package de.qaware.tools.collectioncacheableforspring;
 
 import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
+import de.qaware.tools.collectioncacheableforspring.returnvalue.ReturnValueConverter;
 import org.springframework.cache.interceptor.CachePutOperation;
 
 public class CollectionCacheableOperation extends CachePutOperation {
@@ -31,11 +32,14 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
     private final CollectionCreator collectionCreator;
 
+    private final ReturnValueConverter returnValueConverter;
+
     public CollectionCacheableOperation(Builder b) {
         super(b);
         this.isFindAll = b.isFindAll;
         this.putNull = b.putNull;
         this.collectionCreator = b.collectionCreator;
+        this.returnValueConverter = b.returnValueConverter;
     }
 
     public boolean isFindAll() {
@@ -48,6 +52,10 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
     public CollectionCreator getCollectionCreator() {
         return collectionCreator;
+    }
+
+    public ReturnValueConverter getReturnValueConverter() {
+        return returnValueConverter;
     }
 
     @Override
@@ -68,6 +76,8 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
         private CollectionCreator collectionCreator;
 
+        private ReturnValueConverter returnValueConverter;
+
         public void setFindAll(boolean findAll) {
             isFindAll = findAll;
         }
@@ -78,6 +88,10 @@ public class CollectionCacheableOperation extends CachePutOperation {
 
         public void setCollectionCreator(CollectionCreator collectionCreator) {
             this.collectionCreator = collectionCreator;
+        }
+
+        public void setReturnValueConverter(ReturnValueConverter returnValueConverter) {
+            this.returnValueConverter = returnValueConverter;
         }
 
         @Override
@@ -92,6 +106,9 @@ public class CollectionCacheableOperation extends CachePutOperation {
                         .append(" | collectionCreator=")
                         .append(this.collectionCreator.getClass().getSimpleName());
             }
+            sb
+                    .append(" | returnValueConverter=")
+                    .append(this.returnValueConverter.getClass().getSimpleName());
             return sb;
         }
 
@@ -99,5 +116,7 @@ public class CollectionCacheableOperation extends CachePutOperation {
         public CollectionCacheableOperation build() {
             return new CollectionCacheableOperation(this);
         }
+
+
     }
 }

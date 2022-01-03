@@ -21,6 +21,7 @@
 package de.qaware.tools.collectioncacheableforspring;
 
 import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
+import de.qaware.tools.collectioncacheableforspring.returnvalue.ReturnValueConverter;
 import org.springframework.cache.annotation.CacheAnnotationParser;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.interceptor.CacheOperation;
@@ -52,9 +53,11 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
             "Invalid cache annotation configuration on '%s'.";
 
     private final Collection<CollectionCreator> collectionCreators;
+    private final Collection<ReturnValueConverter> returnValueConverters;
 
-    public CollectionCacheableCacheAnnotationParser(Collection<CollectionCreator> collectionCreators) {
+    public CollectionCacheableCacheAnnotationParser(Collection<CollectionCreator> collectionCreators, Collection<ReturnValueConverter> returnValueConverters) {
         this.collectionCreators = collectionCreators;
+        this.returnValueConverters = returnValueConverters;
     }
 
     @Override
@@ -98,7 +101,10 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
             Method method, DefaultCacheConfig defaultConfig, CollectionCacheable collectionCacheable) {
 
         boolean isFindAll = checkFindAll(method);
-        validateMethodSignature(isFindAll, method);
+        if (!isFindAll) {
+            validateMethodArguments(method);
+            validateGenericMethodSignature(method);
+        }
 
         CollectionCacheableOperation.Builder builder = new CollectionCacheableOperation.Builder();
 
@@ -115,12 +121,20 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
         if (!isFindAll) {
             builder.setCollectionCreator(findCollectionCreator(method));
         }
+        builder.setReturnValueConverter(findReturnValueConverter(method));
 
         defaultConfig.applyDefault(builder);
         CollectionCacheableOperation op = builder.build();
         validateCollectionCacheableOperation(method, op);
 
         return op;
+    }
+
+    private ReturnValueConverter findReturnValueConverter(Method method) {
+        Class<?> returnType = method.getReturnType();
+        return returnValueConverters.stream().filter(converter -> converter.canHandle(returnType))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Cannot find appropriate return value converter for method " + method + ". Available are: " + returnValueConverters));
     }
 
     private CollectionCreator findCollectionCreator(Method method) {
@@ -133,24 +147,6 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
 
     private boolean checkFindAll(Method method) {
         return method.getParameterTypes().length == 0;
-    }
-
-    private static void validateMethodSignature(boolean isFindAll, Method method) {
-        validateMethodReturnType(method);
-        if (isFindAll) {
-            return;
-        }
-        validateMethodArguments(method);
-        validateGenericMethodSignature(method);
-    }
-
-    private static void validateMethodReturnType(Method method) {
-        if (!method.getReturnType().isAssignableFrom(Map.class)) {
-            throw new IllegalStateException(String.format(
-                    MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
-                            " Method return type is not assignable from Map.",
-                    method));
-        }
     }
 
     private static void validateMethodArguments(Method method) {
@@ -179,6 +175,10 @@ public class CollectionCacheableCacheAnnotationParser implements CacheAnnotation
                     MESSAGE_INVALID_COLLECTION_CACHEABLE_ANNOTATION_CONFIGURATION +
                             " Parameterized collection does not have exactly one type argument.",
                     method));
+        }
+        if (!method.getReturnType().isAssignableFrom(Map.class)) {
+            // assume that some custom ReturnValueConverter will handle this
+            return;
         }
         ParameterizedType parameterizedMap = (ParameterizedType) method.getGenericReturnType();
         if (parameterizedMap.getActualTypeArguments().length != 2) {

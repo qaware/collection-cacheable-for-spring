@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @CacheConfig(cacheNames = CollectionCacheableTestRepository.CACHE_NAME)
@@ -51,6 +52,17 @@ public class CollectionCacheableTestRepository {
         return findByIdsInternal(ids);
     }
 
+    @CollectionCacheable(CACHE_NAME)
+    public List<CollectionCacheableTestEntity> findByIdsListOfValues(Collection<CollectionCacheableTestId> ids) {
+        return mapToEntities(findByIdsInternal(ids));
+    }
+
+    private List<CollectionCacheableTestEntity> mapToEntities(Map<CollectionCacheableTestId, CollectionCacheableTestValue> map) {
+        return map.entrySet().stream()
+                .map(entry -> new CollectionCacheableTestEntity(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
     @CollectionCacheable(condition = "#ids.size() < 3")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsWithCondition(Collection<CollectionCacheableTestId> ids) {
         return findByIdsInternal(ids);
@@ -84,6 +96,11 @@ public class CollectionCacheableTestRepository {
     @CollectionCacheable(cacheNames = CACHE_NAME, key = "#result.id")
     public Map<CollectionCacheableTestId, CollectionCacheableTestValue> findAllWithKey() {
         return myDbRepository.findAll();
+    }
+
+    @CollectionCacheable(CACHE_NAME)
+    public List<CollectionCacheableTestEntity> findAllListOfValues() {
+        return mapToEntities(myDbRepository.findAll());
     }
 
     private Map<CollectionCacheableTestId, CollectionCacheableTestValue> findByIdsInternal(Collection<CollectionCacheableTestId> ids) {

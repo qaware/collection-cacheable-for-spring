@@ -24,6 +24,7 @@ import de.qaware.tools.collectioncacheableforspring.creator.CollectionCreator;
 import de.qaware.tools.collectioncacheableforspring.creator.DefaultCollectionCreator;
 import de.qaware.tools.collectioncacheableforspring.creator.SetCollectionCreator;
 import de.qaware.tools.collectioncacheableforspring.returnvalue.DefaultReturnValueConverter;
+import de.qaware.tools.collectioncacheableforspring.returnvalue.ListReturnValueConverter;
 import de.qaware.tools.collectioncacheableforspring.returnvalue.ReturnValueConverter;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -105,4 +106,9 @@ public class CollectionCacheableAutoConfiguration {
         return new DefaultReturnValueConverter();
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public ListReturnValueConverter collectionCacheableListReturnValueConverter() {
+        return new ListReturnValueConverter();
+    }
 }

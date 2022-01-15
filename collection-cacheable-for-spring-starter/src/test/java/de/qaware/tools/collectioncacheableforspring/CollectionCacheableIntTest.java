@@ -1,6 +1,5 @@
 package de.qaware.tools.collectioncacheableforspring;
 
-import de.qaware.tools.collectioncacheableforspring.returnvalue.ListReturnValueConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -327,7 +326,6 @@ public class CollectionCacheableIntTest {
     @Import({
             CollectionCacheableTestRepository.class,
             ArrayListCollectionCreator.class,
-            ListReturnValueConverter.class
     })
     public static class TestConfig {
 
